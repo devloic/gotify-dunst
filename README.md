@@ -1,3 +1,26 @@
+fork of : https://github.com/ztpnk/gotify-dunst
+
+- works on linux mint using its own DBUS_SESSION_BUS_ADDRESS, does not use
+cinnamon notification applet
+- if used with latest https://github.com/dunst-project/dunst/releases/tag/v1.13.0
+it can print categories using %c
+- reads configuration file from ~/.config/gotify-dunst/gotify-dunst.conf
+- shell/monitor.sh script to debug what gets to dunst:
+
+curl -X POST "https://yourgotify/message?token=yourapptoken"     -H "Content-Type: application/json"     -d '{
+"title": "My Title",
+"message": "Hello World",
+"priority": 5,
+"extras": {
+"category": "mycategory",
+"client::display": {
+"image": "/tmp/icon.jpg"
+}
+}
+}'
+
+
+
 <h1 align="center">gotify-dunst</h1>
 
 ## Intro

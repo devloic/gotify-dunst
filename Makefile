@@ -10,7 +10,9 @@ install:
 	# files in /usr/lib
 	install -d $(DESTDIR)$(PREFIX)/lib/gotify-dunst/
 	install main.py $(DESTDIR)$(PREFIX)/lib/gotify-dunst/
-	install gotify-dunst.conf $(DESTDIR)$(PREFIX)/lib/gotify-dunst/
+	mkdir -p $(HOME)/.config/gotify-dunst
+	test -f $(HOME)/.config/gotify-dunst/gotify-dunst.conf || \
+            install -m 644 gotify-dunst.conf $(HOME)/.config/gotify-dunst/gotify-dunst.conf
 
 	# files in /usr/share
 	install -d $(DESTDIR)$(PREFIX)/share/applications

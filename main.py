@@ -56,6 +56,11 @@ if domain in ["push.example.com", None]:
 token = config.get("server", "token")
 ssl = config.get("server", "ssl", fallback="false").lower() == "true"
 
+# Load action commands from configuration
+action_commands = {}
+if config.has_section("actions"):
+    action_commands = dict(config.items("actions"))
+
 # -----------------------
 # DBus session
 # -----------------------
@@ -103,11 +108,6 @@ def get_picture(appid):
                 f.write(urlopen(imgreq).read())
     return imgpath
 
-LOG_PATH = "/home/lolo/mydev/perso/gotify-dunst/shell/dunstify.log"
-
-def log(msg: str):
-    with open(LOG_PATH, "a") as f:
-        f.write(msg + "\n")
 
 def send_notification(message):
     m = json.loads(message)
@@ -142,22 +142,22 @@ def send_notification(message):
     stdout, stderr = proc.communicate()
     action_key = stdout.strip()
 
-    log(f"[gotify-dunst] Notification sent: {m['title']} - {m['message']}")
-    log(f"[gotify-dunst] dunstify stdout: {stdout.strip()}")
-    log(f"[gotify-dunst] dunstify stderr: {stderr.strip()}")
-
     if action_key:
-        log(f"[gotify-dunst] User clicked action: {action_key}")
         handle_action(action_key)
 
 def handle_action(action_key):
-    if action_key == "install":
-        cmd = ["/home/lolo/Music/alarms/alarm_flower.sh"]
-    elif action_key == "ignore":
-        cmd = ["/home/lolo/Music/alarms/alarm.sh"]
-    else:
-        log(f"[gotify-dunst] No handler for action: {action_key}")
+    # Get command from configuration
+    if action_key not in action_commands:
         return
+    
+    command_path = action_commands[action_key]
+    
+    # Validate that the command file exists
+    if not os.path.isfile(command_path):
+        print(f"Warning: Command file not found: {command_path}")
+        return
+    
+    cmd = [command_path]
 
     try:
         proc = subprocess.Popen(
@@ -168,17 +168,15 @@ def handle_action(action_key):
             env=os.environ.copy()
         )
         out, err = proc.communicate()
-        log(f"[gotify-dunst] Script {cmd[0]} stdout: {out.strip()}")
-        log(f"[gotify-dunst] Script {cmd[0]} stderr: {err.strip()}")
+
     except Exception as e:
-        log(f"[gotify-dunst] Failed to run {cmd[0]}: {e}")
+        pass
 
 # -----------------------
 # Main
 # -----------------------
 if __name__ == "__main__":
     ensure_dbus_session()
-    print(f"DBUS_SESSION_BUS_ADDRESS={os.environ['DBUS_SESSION_BUS_ADDRESS']}")
 
     # WebSocket client runs in background thread
     proto = "wss" if ssl else "ws"
